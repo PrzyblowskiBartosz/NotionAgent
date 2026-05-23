@@ -1,9 +1,8 @@
 import logging
-import os
 import re
 from collections import deque
 
-from playwright.sync_api import sync_playwright, Browser, BrowserContext, Page as PlaywrightPage
+from playwright.sync_api import sync_playwright, Page as PlaywrightPage
 
 from app.config import settings
 
@@ -11,39 +10,11 @@ logger = logging.getLogger(__name__)
 
 _CONTENT_SELECTOR = "[data-block-id]"
 _MAX_SCROLL_ATTEMPTS = 30
-_LOGIN_TIMEOUT_MS = 5 * 60 * 1000
-_NOTION_PAGE_RE = re.compile(r"https://www\.notion\.so/[^?#]*[a-f0-9]{32}$")
-
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
     "Chrome/124.0.0.0 Safari/537.36"
 )
-
-
-def _make_context(browser: Browser) -> BrowserContext:
-    kwargs = {"user_agent": _UA}
-    if os.path.exists(settings.session_file):
-        logger.info("Loading saved session from %s", settings.session_file)
-        kwargs["storage_state"] = settings.session_file
-    return browser.new_context(**kwargs)
-
-
-def _handle_login(pw) -> tuple[BrowserContext, Browser]:
-    print(
-        "\n[NotionAgent] Login required.\n"
-        "  A browser window has been opened — please log in to Notion via the\n"
-        "  magic link that will be sent to your email.\n"
-        "  The script will continue automatically once you are logged in.\n"
-    )
-    browser = pw.chromium.launch(headless=False)
-    context = browser.new_context(user_agent=_UA)
-    page = context.new_page()
-    page.goto(settings.notion_page_url, wait_until="domcontentloaded", timeout=30000)
-    page.wait_for_url(lambda url: "notion.so/login" not in url, timeout=_LOGIN_TIMEOUT_MS)
-    context.storage_state(path=settings.session_file)
-    logger.info("Session saved to %s", settings.session_file)
-    return context, browser
 
 
 def _scroll_to_load_all(page: PlaywrightPage) -> None:
@@ -133,16 +104,19 @@ def _scrape_one(page: PlaywrightPage, url: str) -> tuple[str, list[dict]]:
 
 def scrape_pages(root_url: str, max_depth: int) -> list[dict]:
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=settings.headless)
-        context = _make_context(browser)
+        browser = pw.chromium.launch(
+            headless=settings.headless,
+            args=[
+                "--disable-dev-shm-usage",
+                "--disable-gpu",
+                "--no-sandbox",
+                "--no-zygote",
+                "--disable-setuid-sandbox",
+                "--js-flags=--max-old-space-size=256",
+            ],
+        )
+        context = browser.new_context(user_agent=_UA)
         page = context.new_page()
-
-        # Check login on root page
-        page.goto(root_url, wait_until="domcontentloaded", timeout=30000)
-        if "notion.so/login" in page.url:
-            browser.close()
-            context, browser = _handle_login(pw)
-            page = context.new_page()
 
         results = []
         visited: set[str] = set()

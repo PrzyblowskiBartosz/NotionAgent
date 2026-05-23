@@ -1,7 +1,8 @@
 .env
-session.json
 __pycache__/
 *.pyc
 .venv/
 output/*
 !output/.gitkeep
+config/local.env
+.idea/

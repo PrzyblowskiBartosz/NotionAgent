@@ -54,7 +54,8 @@ def _sync() -> None:
                     new_hash=new_hash,
                     detail=f"First sync — {len(blocks)} blocks",
                 ))
-                md_exporter.export(title, blocks, settings.output_dir)
+                if settings.debug:
+                    md_exporter.export(title, blocks, settings.output_dir)
                 new_count += 1
 
             elif page.content_hash != new_hash:
@@ -72,7 +73,8 @@ def _sync() -> None:
                     new_hash=new_hash,
                     detail=f"Content changed — {len(blocks)} blocks",
                 ))
-                md_exporter.export(title, blocks, settings.output_dir)
+                if settings.debug:
+                    md_exporter.export(title, blocks, settings.output_dir)
                 updated_count += 1
 
             else:

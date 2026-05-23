@@ -5,10 +5,11 @@ from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 from app.config import settings
 
-_dsn = (
-    f"postgresql+psycopg://{settings.postgres_user}:{settings.postgres_password}"
+_raw_url = settings.database_url or (
+    f"postgresql://{settings.postgres_user}:{settings.postgres_password}"
     f"@{settings.postgres_host}:{settings.postgres_port}/{settings.postgres_db}"
 )
+_dsn = _raw_url.replace("postgresql://", "postgresql+psycopg://", 1)
 
 engine = create_engine(_dsn)
 SessionLocal = sessionmaker(bind=engine)
@@ -19,7 +20,7 @@ class Base(DeclarativeBase):
 
 
 def init_db() -> None:
-    from app import models  # noqa: F401 — ensures models are registered before create_all
+    from app import models  # noqa: F401
     Base.metadata.create_all(engine)
 
 

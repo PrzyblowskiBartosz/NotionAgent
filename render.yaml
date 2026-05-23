@@ -1,0 +1,21 @@
+services:
+  - type: cron
+    name: notion-agent
+    runtime: docker
+    schedule: "0 * * * *"
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: NOTION_PAGE_URL
+        sync: false
+      - key: MAX_DEPTH
+        value: "2"
+      - key: HEADLESS
+        value: "true"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DEBUG
+        value: "false"
+      - key: OUTPUT_DIR
+        value: output
