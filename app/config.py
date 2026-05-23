@@ -24,6 +24,7 @@ class Settings:
     headless: bool
     output_dir: str
     session_file: str
+    max_depth: int
 
 
 settings = Settings(
@@ -37,4 +38,5 @@ settings = Settings(
     headless=os.getenv("HEADLESS", "true").lower() == "true",
     output_dir=os.getenv("OUTPUT_DIR", "output"),
     session_file=os.getenv("SESSION_FILE", "session.json"),
+    max_depth=int(os.getenv("MAX_DEPTH", "2")),
 )

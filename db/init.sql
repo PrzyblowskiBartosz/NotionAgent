@@ -3,6 +3,8 @@ CREATE TABLE IF NOT EXISTS pages (
     notion_url   TEXT NOT NULL UNIQUE,
     title        TEXT,
     content_hash TEXT,
+    parent_id    BIGINT REFERENCES pages(id),
+    depth        INTEGER NOT NULL DEFAULT 0,
     synced_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

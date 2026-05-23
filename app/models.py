@@ -13,6 +13,8 @@ class Page(Base):
     notion_url: Mapped[str] = mapped_column(Text, unique=True, nullable=False)
     title: Mapped[str | None] = mapped_column(Text)
     content_hash: Mapped[str | None] = mapped_column(Text)
+    parent_id: Mapped[int | None] = mapped_column(BigInteger, ForeignKey("pages.id"), nullable=True)
+    depth: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     synced_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     blocks: Mapped[list["Block"]] = relationship(
