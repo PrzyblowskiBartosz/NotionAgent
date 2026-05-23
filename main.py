@@ -1,4 +1,5 @@
 import logging
+import sys
 
 from app.config import settings
 from app.database import init_db
@@ -7,6 +8,7 @@ from app.sync import run
 logging.basicConfig(
     level=settings.log_level,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    stream=sys.stdout,
 )
 
 if __name__ == "__main__":
